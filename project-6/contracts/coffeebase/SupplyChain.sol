@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import '../coffeecore/Ownable.sol';
+//import '../coffeecore/Ownable.sol';
 import '../coffeeaccesscontrol/ConsumerRole.sol';
 import '../coffeeaccesscontrol/DistributorRole.sol';
 import '../coffeeaccesscontrol/FarmerRole.sol';
@@ -9,8 +9,7 @@ import '../coffeeaccesscontrol/RetailerRole.sol';
 // Define a contract 'Supplychain'
 contract SupplyChain is FarmerRole, DistributorRole, RetailerRole, ConsumerRole {
 
-  // Define 'owner'
-  address owner;
+  address contractOwner;
 
   // Define a variable called 'upc' for Universal Product Code (UPC)
   uint  upc;
@@ -71,7 +70,7 @@ contract SupplyChain is FarmerRole, DistributorRole, RetailerRole, ConsumerRole 
 
   // Define a modifer that checks to see if msg.sender == owner of the contract
   modifier onlyOwner() {
-    require(msg.sender == owner);
+    require(msg.sender == contractOwner);
     _;
   }
 
@@ -147,15 +146,15 @@ contract SupplyChain is FarmerRole, DistributorRole, RetailerRole, ConsumerRole 
   // and set 'sku' to 1
   // and set 'upc' to 1
   constructor() public payable {
-    owner = msg.sender;
+    contractOwner = msg.sender;
     sku = 1;
     upc = 1;
   }
 
   // Define a function 'kill' if required
   function kill() public {
-    if (msg.sender == owner) {
-      selfdestruct(owner);
+    if (msg.sender == contractOwner) {
+      selfdestruct(contractOwner);
     }
   }
 
@@ -163,10 +162,12 @@ contract SupplyChain is FarmerRole, DistributorRole, RetailerRole, ConsumerRole 
   function harvestItem(uint _upc, address _originFarmerID, string _originFarmName, string _originFarmInformation, string  _originFarmLatitude, string  _originFarmLongitude, string  _productNotes) public 
   {
     // Add the new item as part of Harvest
+    
     items[_upc].sku = sku;
-    items[_upc].upc = upc;
+    items[_upc].upc = _upc;
     items[_upc].itemState = State.Harvested;
     items[_upc].ownerID = _originFarmerID;
+    
     items[_upc].originFarmerID = _originFarmerID;
     items[_upc].originFarmName = _originFarmName;
     items[_upc].originFarmInformation = _originFarmInformation;
@@ -174,6 +175,23 @@ contract SupplyChain is FarmerRole, DistributorRole, RetailerRole, ConsumerRole 
     items[_upc].originFarmLongitude = _originFarmLongitude;
     items[_upc].productID = _upc + sku;
     items[_upc].productNotes = _productNotes;
+    
+      /*  
+        items[_upc] = Item({
+            sku: sku,
+            upc: _upc,
+            ownerID: msg.sender,
+            originFarmerID: _originFarmerID,
+            originFarmName: _originFarmName,
+            originFarmInformation: _originFarmInformation,
+            originFarmLatitude: _originFarmLatitude,
+            originFarmLongitude: _originFarmLongitude,
+            productID: _upc + sku,
+            productNotes: _productNotes,
+            productPrice: uint(0),
+            itemState: defaultState
+            });
+    */
     // Increment sku
     sku = sku + 1;
     // Emit the appropriate event
